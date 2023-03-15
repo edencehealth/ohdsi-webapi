@@ -1,23 +1,35 @@
 #!/bin/sh
+# patch4ref: apply patches based on the GIT_REF environment variable
+# shellcheck disable=SC2317
+SELF="$(basename "$0" ".sh")"
+set -eu
 
 warn() {
-  printf '%s %s\n' "$(date '+%FT%T')" "$*" >&2
+  printf '%s %s %s\n' "$(date '+%FT%T%z')" "$SELF" "$*" >&2
 }
 
 die() {
-  warn "$* EXITING"
+  warn "FATAL:" "$@"
   exit 1
 }
 
 usage() {
   printf '%s\n' \
-    "Usage: $0 [-h|--help] [--strict] [git-ref] [...]" \
+    "Usage: $0 [-h|--help] [--strict] [--git-ref ref]" \
     "" \
-    "For each given git ref, this program applies patches to the source code" \
-    "to make the container work (or work better)." \
+    "The program evaluates the GIT_REF environment variable" \
+    "(or the \"--git-ref GIT_REF\" cli argument). For the given GIT_REF," \
+    "this program applies patches to the source code to make the container" \
+    "work (or work better). The GIT_REF can be in any of these formats:" \
     "" \
-    "If given the --strict flag, the program will exit non-zero if any" \
-    "given git ref is unknown." \
+    "* refs/tags/v2.12.1" \
+    "* 2.12.1" \
+    "* v2.12.1" \
+    "* v2.12" \
+    "* v2" \
+    "" \
+    "If given the --strict flag, the program will exit non-zero if no patch" \
+    "was found for the given git ref." \
     "" \
     "$*"
 
@@ -26,120 +38,56 @@ usage() {
 }
 
 main() {
-  STRICT=""
+  STRICT="${STRICT:-0}"
 
-  set -e
-  for arg in "$@"; do
+  while [ $# -gt 0 ]; do
+    arg="$1" # shift at end of loop; if you break inside the loop, shift first
     case "$arg" in
-
-      refs/tags/v2.11.*|*v2.11.*)
-        (
-          warn "Applying patches for $arg"
-          set -ex
-
-          # nothing provided in this container
-          sed -i.bak \
-            's#<scope>provided</scope>##g;' \
-            pom.xml
-
-          # switch repo.ohdsi.org to TLS
-          # see https://maven.apache.org/docs/3.8.1/release-notes.html and
-          # https://github.com/OHDSI/WebAPI/issues/1825
-          sed -i.bak \
-            's#http://repo.ohdsi.org:8085#https://repo.ohdsi.org#g;' \
-            pom.xml
-
-        )
-        ;;
-
-      refs/tags/v2.10.*|*v2.10.*)
-        (
-          warn "Applying patches for $arg"
-          set -ex
-
-          # nothing provided in this container
-          sed -i.bak \
-            's#<scope>provided</scope>##g;' \
-            pom.xml
-
-          # switch repo.ohdsi.org to TLS
-          # see https://maven.apache.org/docs/3.8.1/release-notes.html and
-          # https://github.com/OHDSI/WebAPI/issues/1825
-          sed -i.bak \
-            's#http://repo.ohdsi.org:8085#https://repo.ohdsi.org#g;' \
-            pom.xml
-
-        )
-        ;;
-
-      refs/tags/v2.8.1|*v2.8.1)
-        (
-          warn "Applying patches for $arg"
-          set -ex
-
-          # nothing provided in this container
-          sed -i.bak \
-            's#<scope>provided</scope>##g;' \
-            pom.xml
-
-          # com.qmino:miredot-plugin:2.2 not currently available with TLS
-          sed -i.bak \
-            's#<miredot.phase>package</miredot.phase>#<miredot.phase>none</miredot.phase>#g;' \
-            pom.xml
-
-          # switch repo.ohdsi.org to TLS
-          # see https://maven.apache.org/docs/3.8.1/release-notes.html and
-          # https://github.com/OHDSI/WebAPI/issues/1825
-          sed -i.bak \
-            's#http://repo.ohdsi.org:8085#https://repo.ohdsi.org#g;' \
-            pom.xml
-        )
-        ;;
-
-      refs/tags/v2.7.9|*v2.7.9)
-        (
-          warn "Applying patches for $arg"
-          set -ex
-
-          # nothing provided in this container
-          sed -i.bak \
-            's#<scope>provided</scope>##g;' \
-            pom.xml
-
-          # org.hibernate 5.4.2.Final -> 5.4.22.Final
-          sed -i.bak \
-            's#5.4.2.Final#5.4.22.Final#g;' \
-            pom.xml
-
-          # fixing mssql broken migration
-          sed -i.bak \
-            's#VARCHAR(MAX);#VARCHAR(1024);#g;' \
-            ./src/main/resources/db/migration/sqlserver/V2.8.0.20200427161830__modify_user_login.sql
-        )
+      -h|--help)
+        usage
         ;;
 
       --strict)
         STRICT=1
         ;;
-
-      -h|--help)
-        usage
-        ;;
-
-      -*)
-        usage "Unknown flag $arg"
+      
+      --git-ref)
+        shift || die "--git-ref requires an argument"
+        GIT_REF="$1"
         ;;
 
       *)
-        if [ -n "$STRICT" ]; then
-          die "Not patching unknown git ref ${arg}. This is fatal in strict mode."
-        else
-          warn "Not patching unknown git ref ${arg}"
-        fi
+        usage "Unknown argument ${arg}"
         ;;
-
     esac
+    shift || break
   done
+
+  if [ -z "${GIT_REF:-}" ]; then
+    die "GIT_REF is required to be set in the environment" \
+      "(or specified as a CLI-argument)"
+  fi
+
+  semver3="${GIT_REF##*/}"   # major.minor.patch
+  semver2="${semver3%.*}"    # major.minor
+  semver1="${semver3%.*.*}"  # major
+
+  for v in "$semver3" "$semver2" "$semver1"; do
+    patch="patches/${v}.sh"
+    if [ -f "$patch" ]; then
+      warn "applying patch ${patch} for ref ${GIT_REF}"
+      /bin/sh -c "${patch}" || die "Failed running patch file"
+      warn "done"
+      exit 0
+    fi
+  done
+
+  status="no patch was found for ref \"${GIT_REF}\""
+  if [ "$STRICT" != "0" ]; then
+    die "strict mode: ${status}"
+  fi
+  warn "WARNING: ${status}"
+  exit 0
 }
 
-[ -n "$IMPORT" ] || main "$@"
+main "$@"; exit

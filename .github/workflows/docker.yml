@@ -1,6 +1,6 @@
 name: Docker
 
-on:
+"on":
   push:
     branches:
       - main
@@ -8,8 +8,20 @@ on:
       - '*.*.*'
 
 jobs:
-  image:
-    uses: edencehealth/workflows/.github/workflows/dockerimage.yml@main
+  postgresql:
+    uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
     with:
-      container_name: ohdsi-webapi
+      container_name: ohdsi-webapi_postgresql
+      build-args:
+        GIT_REF=${GIT_REF}
+        MAVEN_PROFILE=webapi-postgresql
+    secrets: inherit
+
+  mssql:
+    uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
+    with:
+      container_name: ohdsi-webapi_mssql
+      build-args:
+        GIT_REF=${GIT_REF}
+        MAVEN_PROFILE=webapi-mssql
     secrets: inherit
