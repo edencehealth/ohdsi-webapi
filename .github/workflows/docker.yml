@@ -7,10 +7,6 @@ name: Docker
     tags:
       - '*.*.*'
 
-env:
-  # for updates, see: https://github.com/OHDSI/WebAPI/releases
-  UPSTREAM_GIT_REF: "refs/tags/v2.12.1"
-
 jobs:
   # https://github.com/edencehealth/workflows
   postgresql:
@@ -18,7 +14,6 @@ jobs:
     with:
       container_name: ohdsi-webapi_postgresql
       build_args: |
-        GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-postgresql
     secrets: inherit
 
@@ -28,6 +23,5 @@ jobs:
     with:
       container_name: ohdsi-webapi_mssql
       build_args: |
-        GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-mssql
     secrets: inherit
