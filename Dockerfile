@@ -1,7 +1,7 @@
 FROM maven:3-amazoncorretto-8 as builder
 
 # for updates, see: https://github.com/OHDSI/WebAPI/releases
-ARG GIT_REF="refs/tags/v2.12.1"
+ARG GIT_REF="v2.12.1"
 
 # available MAVEN_PROFILE values:
 #   webapi-bigquery, webapi-docker, webapi-gis, webapi-hive, webapi-impala,
@@ -30,10 +30,12 @@ WORKDIR /build
 
 # acquire the app code
 RUN set -eux; \
-  git clone "https://github.com/OHDSI/WebAPI.git" "/build"; \
-  if [ -n "$GIT_REF" ]; then \
-    git checkout "${GIT_REF}" \
-  ; fi
+  git clone \
+    --single-branch \
+    --branch "$GIT_REF" \
+    --depth 1 \
+    "https://github.com/OHDSI/WebAPI.git" \
+    "/build";
 
 # copy in the source code patches & run them
 COPY patch4ref.sh ./

@@ -11,4 +11,5 @@ set -eux
 sed -i.bak \
   -e 's#<scope>provided</scope>##g;' \
   -e 's#http://repo.ohdsi.org:8085#https://repo.ohdsi.org#g;' \
+  -e 's#54.209.111.128#127.0.0.1#g;' \
   pom.xml
