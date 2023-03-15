@@ -12,20 +12,22 @@ env:
   UPSTREAM_GIT_REF: "refs/tags/v2.12.1"
 
 jobs:
+  # https://github.com/edencehealth/workflows
   postgresql:
     uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
     with:
       container_name: ohdsi-webapi_postgresql
-      build-args:
+      build_args:
         GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-postgresql
     secrets: inherit
 
+  # https://github.com/edencehealth/workflows
   mssql:
     uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
     with:
       container_name: ohdsi-webapi_mssql
-      build-args:
+      build_args:
         GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-mssql
     secrets: inherit
