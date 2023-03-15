@@ -16,7 +16,7 @@ jobs:
     uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
     with:
       container_name: ohdsi-webapi_postgresql
-      build-args:
+      build_args:
         GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-postgresql
     secrets: inherit
@@ -25,7 +25,7 @@ jobs:
     uses: edencehealth/workflows/.github/workflows/dockerimage.yml@v1
     with:
       container_name: ohdsi-webapi_mssql
-      build-args:
+      build_args:
         GIT_REF=${UPSTREAM_GIT_REF}
         MAVEN_PROFILE=webapi-mssql
     secrets: inherit
