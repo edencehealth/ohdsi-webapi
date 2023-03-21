@@ -2,9 +2,9 @@
 # CHANGES:
 # --------
 # nothing provided in this container
-# 
+#
 # org.hibernate 5.4.2.Final -> 5.4.22.Final
-# 
+#
 # fixing mssql broken migration
 set -eux
 
