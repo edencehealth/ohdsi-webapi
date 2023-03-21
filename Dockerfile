@@ -38,9 +38,13 @@ RUN set -eux; \
     "/build";
 
 # copy in the source code patches & run them
-COPY patch4ref.sh ./
+RUN set -eux; \
+  curl --tlsv1.2 -sSL -o /bin/patch4ref \
+  # v1 is a floating ref updated by the edencehealth/patch4ref release workflow
+  "https://raw.githubusercontent.com/edencehealth/patch4ref/v1/patch4ref.sh"; \
+  chmod +x /bin/patch4ref;
 COPY patches patches/
-RUN ./patch4ref.sh --strict
+RUN patch4ref --strict
 
 # build the app
 RUN --mount=type=cache,target=/root/.m2 \
