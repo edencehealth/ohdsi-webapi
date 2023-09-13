@@ -1,7 +1,7 @@
 FROM maven:3-amazoncorretto-8 as builder
 
 # for updates, see: https://github.com/OHDSI/WebAPI/releases
-ARG GIT_REF="v2.12.1"
+ARG GIT_REF="v2.13.0"
 
 # available MAVEN_PROFILE values:
 #   webapi-bigquery, webapi-docker, webapi-gis, webapi-hive, webapi-impala,
