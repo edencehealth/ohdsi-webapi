@@ -4,8 +4,8 @@
 
 Users may also be interested in the [official OHDSI WebAPI image](https://hub.docker.com/r/ohdsi/webapi).
 
-[pgimg]: https://hub.docker.com/r/edence/ohdsi-webapi_mssql
-[mssqlimg]: https://hub.docker.com/r/edence/ohdsi-webapi_postgresql
+[mssqlimg]: https://hub.docker.com/r/edence/ohdsi-webapi_mssql
+[pgimg]: https://hub.docker.com/r/edence/ohdsi-webapi_postgresql
 [eH]: https://edence.health/
 [ohdsi]: https://www.ohdsi.org/
 [webapi]: https://github.com/OHDSI/WebAPI
