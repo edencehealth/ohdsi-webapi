@@ -15,6 +15,7 @@ jobs:
       container_name: ohdsi-webapi_postgresql
       build_args: |
         MAVEN_PROFILE=webapi-postgresql
+      push_readme: README.md
     secrets: inherit
 
   # https://github.com/edencehealth/workflows
@@ -24,4 +25,5 @@ jobs:
       container_name: ohdsi-webapi_mssql
       build_args: |
         MAVEN_PROFILE=webapi-mssql
+      push_readme: README.md
     secrets: inherit
